@@ -24,28 +24,24 @@ export class News extends Component {
     super(props);
     this.state = {
       articles: [],
-      loading: false,
+      loading: true,
       page: 1,
-      totalResults:0
+      totalResults: 0,
     };
     document.title = `${this.capitalizeFirstLetter(
       this.props.category
     )} - News Monkey`;
   }
 
-  fetchMoreData = async () => {   
-    const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=433592e57db64927b4ad52cabb9ee44d&page=${this.state.page+1}&pageSize=${this.props.pageSize}`;
-    
+  fetchMoreData = async () => {  
+    this.setState({page: this.state.page + 1})
+    const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=d093053d72bc40248998159804e0e67d&page=${this.state.page}&pageSize=${this.props.pageSize}`;
     let data = await fetch(url);
     let parsedData = await data.json()
     this.setState({
-      articles: this.state.articles.concat(parsedData.articles),
-      totalResults: parsedData.totalResults,
-      loading: false,
-    });
-    console.log("this is called")
-    this.setState({page:this.state.page+1});
-    this.updateNews();
+        articles: this.state.articles.concat(parsedData.articles),
+        totalResults: parsedData.totalResults
+    })
   };
 
   updateNews = async () => {
@@ -75,43 +71,33 @@ export class News extends Component {
         {/* {this.state.loading && <Spinner />} */}
 
         <InfiniteScroll
-          dataLength={this.state.articles.length}
+          dataLength={(this.state.articles.length===null) ? 0 : this.state.articles.length}
           next={this.fetchMoreData}
           hasMore={this.state.articles.length !== this.state.totalResults}
           loader={<Spinner />}
         >
           <div className="container">
-
-          <div className="row">
-            {this.state.articles.map((element) => {
-              return (
-                <div className="col-md-4" key={element.url}>
-                  <NewsItem
-                    title={
-                      element.title === null
-                        ? ""
-                        : element.title.slice(0, 45) +
-                          (element.title.length > 45 ? "..." : "")
-                    }
-                    description={
-                      element.description === null
-                        ? ""
-                        : element.description.slice(0, 88) +
-                        (element.description.length > 88 ? "..." : "")
+            <div className="row">
+              {this.state.articles.map((element) => {
+                return (
+                  <div className="col-md-4" key={element.url}>
+                    <NewsItem
+                      title={element.title ? element.title : ""}
+                      description={
+                        element.description ? element.description : ""
                       }
                       imageUrl={element.urlToImage}
                       newsUrl={element.url}
                       author={element.author}
                       date={element.publishedAt}
                       source={element.source.name}
-                      />
-                </div>
-              );
-            })}
-          </div>
+                    />
+                  </div>
+                );
+              })}
             </div>
+          </div>
         </InfiniteScroll>
-        
       </div>
     );
   }
